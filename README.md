@@ -66,9 +66,9 @@ test-host.example.com
 ```
 
 All zones will be created on test-host.example.com.
-*testz* will be simple shared-ip zone, primary interface will be auto-detected.
-*testz2* will be simple shared-ip zone, primary interface will be auto-detected from sz\_network. Additional resource limit (*zone.cpu-cap*) is applied to the zone.
-*testz3* will be created as exclusive-ip zone, *aggr10001* will be used as primary interface.
+- *testz* will be simple shared-ip zone, primary interface will be auto-detected.
+- *testz2* will be simple shared-ip zone, primary interface will be auto-detected from sz\_network. Additional resource limit (*zone.cpu-cap*) is applied to the zone.
+- *testz3* will be created as exclusive-ip zone, *aggr10001* will be used as primary interface.
 
 Playbook:
 ```yml
