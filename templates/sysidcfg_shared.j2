@@ -1,0 +1,14 @@
+terminal={{ sz_terminal }}
+system_locale={{ sz_locale }}
+timezone={{ sz_timezone }}
+network_interface=primary {
+         hostname={{ inventory_hostname }}
+}
+name_service=DNS {
+         domain_name={{ sz_dns_domain }}
+         name_server={{ sz_dns_servers | join(',') }}
+         search={{ sz_dns_search | join(',') }}
+}
+security_policy=NONE
+nfs4_domain=dynamic
+root_password={{ sz_root_password }}

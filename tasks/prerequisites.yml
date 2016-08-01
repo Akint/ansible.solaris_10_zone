@@ -1,0 +1,52 @@
+---
+- name: Fail if run on wrong OS
+  fail:
+    msg: "This can be run on Solaris 10 only, not {{ ansible_distribution }} {{ ansible_distribution_version }}"
+  when: ansible_distribution != 'Solaris' or ansible_distribution_version != '10'
+  
+- name: Fail if sz_ip_type is wrong
+  fail:
+    msg: "Provided sz_ip_type is wrong. It must be either 'shared' (default) or 'exclusive', not '{{ sz_ip_type }}'"
+  when: sz_ip_type is not defined or sz_ip_type not in ['shared', 'exclusive']
+
+- name: Fail if provided sz_ip_type is wrong
+  fail:
+    msg: "Provided sz_ip_type is wrong. It must be either 'shared' (default) or 'exclusive', not '{{ sz_ip_type }}'"
+  when: sz_ip_type not in ['shared', 'exclusive']
+  
+- name: Fail if sz_address is wrong
+  fail:
+    msg: sz_address is not defined or has incorrect value
+  when: sz_address is not defined or not sz_address | ipaddr
+
+- name: Fail if sz_gateway is wrong
+  fail:
+    msg: sz_gateway is not defined or has incorrect value
+  when: sz_ip_type == 'exclusive' and (sz_gateway is not defined or not sz_gateway | ipaddr)
+
+- name: Fail if sz_netmask is wrong
+  fail: 
+    msg: sz_netmask is not defined or has incorrect value
+  when: sz_ip_type == 'exclusive' and not sz_netmask
+
+- name: Fail if sz_dns_servers is not defined
+  fail:
+  when: sz_dns_servers is not defined
+
+- name: Fail if sz_dns_domain is not defined
+  fail:
+  when: sz_dns_domain is not defined
+
+- name: Fail if sz_dns_search is not defined
+  fail:
+  when: sz_dns_search is not defined
+
+- name: Fail if sz_interface is not defined
+  fail: 
+    msg: sz_interface is not defined
+  when: sz_ip_type == 'exclusive' and sz_interface is not defined
+
+- name: Fail if provided sz_interface is wrong
+  fail:
+    msg: "Interface '{{ sz_interface }}' is not configured on {{ sz_host }}"
+  when: sz_ip_type == 'shared' and sz_interface is defined and hostvars[inventory_hostname][ "ansible_{{ sz_interface }}" ] is not defined

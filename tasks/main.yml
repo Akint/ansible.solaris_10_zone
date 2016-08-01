@@ -1,0 +1,69 @@
+---
+- name: "Gathering facts about {{ sz_host }}"
+  setup:
+  delegate_to: "{{ sz_host }}"
+
+- include: prerequisites.yml
+
+- include: shared.yml
+  when: sz_ip_type == 'shared'
+
+- include: exclusive.yml
+  when: sz_ip_type == 'exclusive'
+
+- name: create sysidcfg from template
+  template:
+    src: "sysidcfg_{{ sz_ip_type }}.j2"
+    dest: "{{ sz_zonepath }}/root/etc/sysidcfg"
+  delegate_to: "{{ sz_host }}"
+
+- name: reset /etc/.sysIDtool.state
+  replace:
+    dest: "{{ sz_zonepath }}/root/etc/.sysIDtool.state"
+    regexp: '^1(\s+.+)$'
+    replace: '0\1'
+  delegate_to: "{{ sz_host }}"
+  when: sz_install_result.changed or sz_force_reconfigure
+
+- name: create /etc/.UNCONFIGURED
+  copy:
+    src: empty_file
+    dest: "{{ sz_zonepath }}/root/etc/.UNCONFIGURED"
+  delegate_to: "{{ sz_host }}"
+  when: sz_install_result.changed or sz_force_reconfigure
+
+- name: copy SSH keys
+  authorized_key: 
+    path: "{{ sz_zonepath }}/root/.ssh/authorized_keys"
+    key: "{{ sz_root_ssh_key }}"
+    user: root
+  delegate_to: "{{ sz_host }}"
+  when: sz_root_ssh_key is defined
+
+- name: permit root login
+  lineinfile: 
+    dest: "{{ sz_zonepath }}/root/etc/ssh/sshd_config"
+    regexp: '^PermitRootLogin' 
+    line: 'PermitRootLogin yes'
+  delegate_to: "{{ sz_host }}"
+
+- name: prohibit password authentication
+  lineinfile: 
+    dest: "{{ sz_zonepath }}/root/etc/ssh/sshd_config"
+    regexp: '^PasswordAuthentication' 
+    line: 'PasswordAuthentication no'
+  delegate_to: "{{ sz_host }}"
+  when: sz_root_ssh_key is defined
+
+- name: boot zone
+  solaris_zone:
+    name: "{{ inventory_hostname }}"
+    state: running
+  delegate_to: "{{ sz_host }}"
+
+- name: wait for zone to boot up
+  wait_for:
+    host: "{{ sz_address }}"
+    port: 22
+    search_regex: SSH
+  delegate_to: 127.0.0.1

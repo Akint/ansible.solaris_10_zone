@@ -1,0 +1,32 @@
+---
+- name: Setting zone shared interface if variable sz_interface is defined
+  set_fact:
+    sz_interface: "{{ sz_interface }}"
+  when: sz_interface is defined
+
+- name: Looking for zone shared interface
+  set_fact:
+    sz_interface: "{{ item }}"
+  delegate_to: "{{ sz_host }}"
+  with_items: "{{ hostvars[inventory_hostname]['ansible_interfaces'] }}"
+  when: (hostvars[inventory_hostname]['sz_interface'] is not defined) and (':' not in item) and (hostvars[inventory_hostname]['ansible_' + item]['ipv4'][0]['network'] == sz_network )
+
+- name: Fail if zone shared interface is not defined
+  fail:
+    msg: Cannot determine zone shared interface
+  when: hostvars[inventory_hostname]['sz_interface'] is not defined
+
+- name: create shared-ip zone
+  solaris_zone:
+    name: "{{ inventory_hostname }}"
+    state: installed
+    path: "{{ sz_zonepath }}"
+    config: |
+      add net;
+      set physical={{ hostvars[inventory_hostname]['sz_interface'] }};
+      set address={{ sz_address }};
+      end;
+      {{ sz_common_config }}
+  delegate_to: "{{ sz_host }}"
+  register: sz_install_result
+

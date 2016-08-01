@@ -1,0 +1,12 @@
+---
+sz_ip_type: shared
+sz_root_password: TIjheblqh97ZU # qw3rty
+sz_timezone: UTC
+sz_terminal: vt100
+sz_locale: C
+sz_common_config: 'set autoboot=true;'
+sz_address: "{{ sz_ip | default(None) | ipv4('host/prefix') | ipaddr('address') }}"
+sz_netmask: "{{ sz_ip | default(None) | ipv4('host/prefix') | ipaddr('netmask') }}"
+sz_network: "{{ (sz_address + '/' + sz_netmask) | ipaddr('network') }}"
+sz_zonepath: "/zones/{{ inventory_hostname }}"
+sz_force_reconfigure: false

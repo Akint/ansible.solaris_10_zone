@@ -1,0 +1,19 @@
+---
+- name: Fail if zone exclusive interface is not defined
+  fail:
+  when: sz_interface is not defined
+
+- name: create exclusive-ip zone
+  solaris_zone:
+    name: "{{ inventory_hostname }}"
+    state: installed
+    path: "{{ sz_zonepath }}"
+    config: |
+      set ip-type=exclusive;
+      add net;
+      set physical={{ sz_interface }};
+      end;
+      {{ sz_common_config }}
+  delegate_to: "{{ sz_host }}"
+  register: sz_install_result
+
